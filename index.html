@@ -3,13 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Колесо Фортуны — Цифры 1, 2, 3...</title>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
-
+        * { box-sizing: border-box; user-select: none; }
         body {
             background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
             font-family: 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
@@ -20,7 +15,6 @@
             margin: 0;
             padding: 20px;
         }
-
         .wheel-container {
             max-width: 1400px;
             width: 100%;
@@ -31,7 +25,6 @@
             box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 215, 120, 0.4);
         }
-
         .dashboard {
             display: flex;
             flex-wrap: wrap;
@@ -39,7 +32,6 @@
             justify-content: center;
             align-items: flex-start;
         }
-
         .wheel-area {
             flex: 2;
             min-width: 320px;
@@ -47,14 +39,12 @@
             flex-direction: column;
             align-items: center;
         }
-
         .canvas-wrapper {
             position: relative;
             width: 100%;
             max-width: 550px;
             margin: 0 auto;
         }
-
         canvas {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -64,7 +54,6 @@
             transition: box-shadow 0.2s;
             cursor: pointer;
         }
-
         .pointer {
             position: absolute;
             top: -28px;
@@ -87,7 +76,6 @@
             color: #d48d00;
             text-shadow: 0 0 3px gold;
         }
-
         .spin-btn {
             margin-top: 35px;
             background: radial-gradient(circle at 30% 10%, #ffd966, #e6a017);
@@ -115,7 +103,6 @@
             cursor: not-allowed;
             filter: grayscale(0.1);
         }
-
         .result-area {
             margin-top: 20px;
             background: #1f2a1bdb;
@@ -129,7 +116,6 @@
             width: 100%;
             border: 1px solid #ffcd7e;
         }
-
         .settings-panel {
             flex: 1.4;
             min-width: 280px;
@@ -140,7 +126,6 @@
             box-shadow: inset 0 0 6px #ffd58c33, 0 10px 25px rgba(0,0,0,0.3);
             border: 1px solid #c9a458;
         }
-
         .settings-panel h3 {
             margin: 0 0 10px 0;
             color: #ffdd99;
@@ -149,7 +134,6 @@
             font-weight: 600;
             text-shadow: 2px 2px 0 #674f1a;
         }
-
         .sub {
             color: #ffcd94;
             text-align: center;
@@ -159,14 +143,12 @@
             display: inline-block;
             width: 100%;
         }
-
         .options-list {
             max-height: 420px;
             overflow-y: auto;
             padding-right: 6px;
             margin-bottom: 20px;
         }
-
         .option-row {
             background: #362c1eba;
             margin-bottom: 12px;
@@ -179,7 +161,6 @@
             backdrop-filter: blur(2px);
             border: 1px solid #efbc6e;
         }
-
         .option-number {
             background: #f3bc5c;
             width: 44px;
@@ -193,7 +174,6 @@
             color: #2c1e10;
             box-shadow: inset 0 -2px 0 #a05e15, 0 2px 6px black;
         }
-
         .option-weight {
             flex: 2;
             min-width: 110px;
@@ -310,7 +290,7 @@
             </div>
             <button class="spin-btn" id="spinButton">🎡 КРУТИТЬ 🎲</button>
             <div class="result-area" id="resultMessage">
-                ✨ Настрой шансы для цифр ✨
+                ✨ Загрузка настроек... ✨
             </div>
         </div>
 
@@ -326,7 +306,7 @@
                 <span>⚡ Шанс = вес / сумма</span>
             </div>
             <div class="warning" id="warningMsg">
-                * Цифры нумеруются автоматически. Изменения сохраняются в браузере.
+                * Загружены веса из wheel_settings.json (если доступен).
             </div>
         </div>
     </div>
@@ -335,18 +315,14 @@
 <script>
     (function() {
         const STORAGE_KEY = 'wheelNumbersOnly';
-
-        // Стандарт: три секции с цифрами 1,2,3 и весами (шансами)
         const DEFAULT_SECTIONS = [
-            { weight: 30 },   // цифра 1
-            { weight: 25 },   // цифра 2
-            { weight: 20 }    // цифра 3
+            { weight: 30 },
+            { weight: 25 },
+            { weight: 20 }
         ];
 
-        // Массив объектов { weight }
         let sections = [];
 
-        // DOM элементы
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
         const spinBtn = document.getElementById('spinButton');
@@ -354,9 +330,7 @@
         const optionsContainer = document.getElementById('optionsContainer');
         const totalWeightSpan = document.getElementById('totalWeightDisplay');
         const warningMsgDiv = document.getElementById('warningMsg');
-        const saveBadge = document.getElementById('saveBadge');
 
-        // Анимация
         let spinning = false;
         let animFrame = null;
         let currentRotation = 0;
@@ -371,34 +345,70 @@
             '#F15BB5', '#FEE440', '#00BBF9', '#00F5D4', '#D90368', '#FFB703', '#FB8B67', '#6C9EBF'
         ];
 
-        // ---------- Сохранение / загрузка ----------
+        // Сохранение в localStorage
         function saveToLocalStorage() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(sections));
-                saveBadge.style.opacity = '0.7';
-                setTimeout(() => { saveBadge.style.opacity = '1'; }, 200);
             } catch(e) {}
         }
 
+        // Загрузка из localStorage (без проверки JSON)
         function loadFromLocalStorage() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        const valid = parsed.every(item => typeof item.weight === 'number' && !isNaN(item.weight));
-                        if (valid) {
-                            sections = parsed;
-                            return;
-                        }
+                    if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(item => typeof item.weight === 'number' && !isNaN(item.weight))) {
+                        sections = parsed;
+                        return true;
                     }
                 } catch(e) {}
             }
-            // иначе стандарт
-            sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+            return false;
         }
 
-        // Получить массив секций с актуальными весами (>0 для отображения, но отображаем все)
+        // Загрузка из внешнего JSON-файла (wheel_settings.json)
+        async function loadFromJsonFile() {
+            try {
+                const response = await fetch('wheel_settings.json');
+                if (!response.ok) throw new Error('JSON not found');
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0 && data.every(item => typeof item.weight === 'number' && !isNaN(item.weight))) {
+                    sections = data;
+                    // Сохраняем в localStorage как кэш для этого устройства
+                    saveToLocalStorage();
+                    warningMsgDiv.innerHTML = "✅ Загружены веса из wheel_settings.json. Изменения автосохраняются в браузере.";
+                    return true;
+                } else {
+                    throw new Error('Invalid JSON structure');
+                }
+            } catch (error) {
+                console.warn('Не удалось загрузить wheel_settings.json:', error);
+                return false;
+            }
+        }
+
+        // Основная инициализация: сначала пытаемся взять JSON, потом localStorage, потом дефолт
+        async function initData() {
+            // Пытаемся загрузить из JSON
+            const jsonLoaded = await loadFromJsonFile();
+            if (!jsonLoaded) {
+                // Если JSON нет, пробуем localStorage
+                const localLoaded = loadFromLocalStorage();
+                if (!localLoaded) {
+                    // Иначе дефолт
+                    sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+                    warningMsgDiv.innerHTML = "⚠️ wheel_settings.json не найден, используются стандартные веса (или из localStorage).";
+                } else {
+                    warningMsgDiv.innerHTML = "📁 Загружены веса из localStorage (кэш). Чтобы получить общие веса, убедитесь, что wheel_settings.json доступен.";
+                }
+            }
+            // Гарантия, что нет секций с отрицательными весами
+            sections = sections.filter(s => s.weight > 0);
+            if (sections.length === 0) sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+        }
+
+        // Получить массив только с положительными весами (для отрисовки)
         function getValidSections() {
             return sections.filter(s => s.weight > 0);
         }
@@ -407,7 +417,6 @@
             return sections.reduce((sum, s) => sum + (s.weight > 0 ? s.weight : 0), 0);
         }
 
-        // Обновить отображение списка (цифры от 1 до N)
         function renderOptionsList() {
             optionsContainer.innerHTML = '';
             sections.forEach((sec, idx) => {
@@ -468,11 +477,9 @@
                 else if (total <= 0) warningMsgDiv.innerHTML = "⚠️ Сумма весов должна быть больше нуля.";
             } else {
                 spinBtn.disabled = false;
-                warningMsgDiv.innerHTML = "✅ Цифры 1,2,3... Шанс = вес / сумма весов. Любое изменение сохраняется.";
             }
         }
 
-        // Отрисовка колеса с номерами (цифры)
         function redrawWheel() {
             const valid = getValidSections();
             if (valid.length === 0) {
@@ -499,7 +506,6 @@
             ctx.clearRect(0, 0, w, h);
             let accumAngle = 0;
             
-            // Для каждого сектора (с учётом фильтра valid, но индексы нужны для цвета)
             for (let i = 0; i < valid.length; i++) {
                 const sec = valid[i];
                 const angleSpan = (sec.weight / totalWeight) * Math.PI * 2;
@@ -519,8 +525,6 @@
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
                 
-                // Текст — номер секции (оригинальный индекс в массиве sections? Но valid может пропускать нулевые веса?
-                // Нужно найти реальный номер цифры. Для этого находим индекс этой секции в оригинальном массиве sections.
                 const originalIndex = sections.findIndex(s => s === sec);
                 const numberLabel = (originalIndex + 1).toString();
                 
@@ -544,7 +548,6 @@
                 accumAngle += angleSpan;
             }
             
-            // центральный диск
             ctx.beginPath();
             ctx.arc(cx, cy, radius * 0.13, 0, Math.PI*2);
             ctx.fillStyle = "#f7cf7c";
@@ -555,7 +558,6 @@
             ctx.fillText("🎲", cx, cy);
         }
         
-        // Определить выпавшую секцию по текущему повороту (возвращает объект с весом и номером)
         function getCurrentWin() {
             const valid = getValidSections();
             if (valid.length === 0) return null;
@@ -586,7 +588,6 @@
                 }
                 accumStart += angleSize;
             }
-            // fallback
             const firstValidIdx = sections.findIndex(s => s === valid[0]);
             return { number: firstValidIdx + 1, weight: valid[0].weight };
         }
@@ -602,7 +603,6 @@
             }
         }
         
-        // --- анимация ---
         function animateSpin(now) {
             const elapsed = now - startTime;
             let t = Math.min(1, elapsed / duration);
@@ -642,16 +642,14 @@
             animFrame = requestAnimationFrame(animateSpin);
         }
         
-        // Полное обновление интерфейса, колеса и сохранение
         function persistAndFullRefresh() {
             saveToLocalStorage();
-            renderOptionsList();    // перерисовывает список с номерами
+            renderOptionsList();
             redrawWheel();
             updateResultText();
             updateTotalAndWarning();
         }
         
-        // Сброс к трём секциям с весами 30, 25, 20
         function resetToDefaults() {
             sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
             persistAndFullRefresh();
@@ -666,13 +664,15 @@
             persistAndFullRefresh();
         }
         
-        // Инициализация и адаптация canvas
-        function init() {
-            loadFromLocalStorage();
-            // дополнительная проверка: если ни одной секции (маловероятно) — дефолт
-            if (!sections.length) sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
-            saveToLocalStorage(); // просинхронизируем
-            
+        function resizeCanvas() {
+            const size = Math.min(canvas.parentElement.clientWidth, 600);
+            canvas.width = size;
+            canvas.height = size;
+            redrawWheel();
+        }
+        
+        async function init() {
+            await initData();          // Загружаем данные из JSON / localStorage / default
             renderOptionsList();
             redrawWheel();
             updateResultText();
@@ -682,12 +682,6 @@
             document.getElementById('addOptionBtn').addEventListener('click', addNewSection);
             document.getElementById('resetDefaultsBtn').addEventListener('click', resetToDefaults);
             
-            function resizeCanvas() {
-                const size = Math.min(canvas.parentElement.clientWidth, 600);
-                canvas.width = size;
-                canvas.height = size;
-                redrawWheel();
-            }
             window.addEventListener('resize', () => resizeCanvas());
             resizeCanvas();
         }
@@ -697,4 +691,3 @@
 </script>
 </body>
 </html>
-```
