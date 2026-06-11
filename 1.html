@@ -1,0 +1,702 @@
+Мы сделали колесо фортуны с простыми цифрами 1, 2, 3... — каждая секция обозначена номером, а вы сами задаёте шанс (вес) для каждой цифры. Все настройки автоматически сохраняются.
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Колесо Фортуны — Цифры 1, 2, 3...</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .wheel-container {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(30, 20, 15, 0.7);
+            backdrop-filter: blur(6px);
+            border-radius: 64px;
+            padding: 25px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 215, 120, 0.4);
+        }
+
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .wheel-area {
+            flex: 2;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        canvas {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #2c1e12;
+            border-radius: 50%;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5), 0 0 0 12px #f7d44a, 0 0 0 18px #b87c2e;
+            transition: box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 28px solid transparent;
+            border-right: 28px solid transparent;
+            border-top: 65px solid #ffcc33;
+            filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4));
+            z-index: 10;
+        }
+        .pointer::after {
+            content: "⚡";
+            position: absolute;
+            top: -62px;
+            left: -14px;
+            font-size: 28px;
+            color: #d48d00;
+            text-shadow: 0 0 3px gold;
+        }
+
+        .spin-btn {
+            margin-top: 35px;
+            background: radial-gradient(circle at 30% 10%, #ffd966, #e6a017);
+            border: none;
+            font-size: 1.8rem;
+            font-weight: bold;
+            padding: 14px 35px;
+            border-radius: 80px;
+            color: #2d1b0c;
+            box-shadow: 0 8px 0 #8b5a2b;
+            cursor: pointer;
+            transition: 0.08s linear;
+            font-family: inherit;
+            letter-spacing: 2px;
+            width: 80%;
+            max-width: 280px;
+        }
+        .spin-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #8b5a2b;
+        }
+        .spin-btn:disabled {
+            opacity: 0.6;
+            transform: translateY(0);
+            cursor: not-allowed;
+            filter: grayscale(0.1);
+        }
+
+        .result-area {
+            margin-top: 20px;
+            background: #1f2a1bdb;
+            backdrop-filter: blur(12px);
+            padding: 12px 20px;
+            border-radius: 60px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #ffefb9;
+            text-align: center;
+            width: 100%;
+            border: 1px solid #ffcd7e;
+        }
+
+        .settings-panel {
+            flex: 1.4;
+            min-width: 280px;
+            background: #261f16dd;
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 18px 18px 25px;
+            box-shadow: inset 0 0 6px #ffd58c33, 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid #c9a458;
+        }
+
+        .settings-panel h3 {
+            margin: 0 0 10px 0;
+            color: #ffdd99;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-shadow: 2px 2px 0 #674f1a;
+        }
+
+        .sub {
+            color: #ffcd94;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 18px;
+            border-bottom: 1px dashed #cb9e57;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .options-list {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 6px;
+            margin-bottom: 20px;
+        }
+
+        .option-row {
+            background: #362c1eba;
+            margin-bottom: 12px;
+            border-radius: 48px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            backdrop-filter: blur(2px);
+            border: 1px solid #efbc6e;
+        }
+
+        .option-number {
+            background: #f3bc5c;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1.6rem;
+            color: #2c1e10;
+            box-shadow: inset 0 -2px 0 #a05e15, 0 2px 6px black;
+        }
+
+        .option-weight {
+            flex: 2;
+            min-width: 110px;
+        }
+        .option-weight input {
+            width: 100%;
+            background: #fff1d0;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 40px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            font-family: inherit;
+        }
+        .delete-btn {
+            background: #aa3e2c;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 40px;
+            width: 44px;
+            height: 44px;
+            font-size: 22px;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 2px 5px black;
+        }
+        .delete-btn:active {
+            transform: scale(0.94);
+        }
+        .add-btn {
+            background: #5f8b4c;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            width: 100%;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: 0.1s;
+            font-family: inherit;
+        }
+        .add-btn:active {
+            transform: scale(0.97);
+        }
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #1f1b12;
+            border-radius: 40px;
+            padding: 10px 15px;
+            margin-top: 18px;
+            font-weight: bold;
+            color: #ffeaac;
+            font-size: 0.9rem;
+        }
+        .warning {
+            color: #ffb347;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .reset-defaults {
+            background: #937341;
+            margin-top: 12px;
+            width: 100%;
+            border-radius: 40px;
+            padding: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        .save-badge {
+            background: #2f6b2f;
+            font-size: 0.7rem;
+            display: inline-block;
+            border-radius: 20px;
+            padding: 2px 12px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px gold;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #3f301f;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f3bc5c;
+            border-radius: 8px;
+        }
+        @media (max-width: 780px) {
+            .dashboard { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="wheel-container">
+    <div class="dashboard">
+        <div class="wheel-area">
+            <div class="canvas-wrapper">
+                <canvas id="wheelCanvas" width="600" height="600"></canvas>
+                <div class="pointer"></div>
+            </div>
+            <button class="spin-btn" id="spinButton">🎡 КРУТИТЬ 🎲</button>
+            <div class="result-area" id="resultMessage">
+                ✨ Настрой шансы для цифр ✨
+            </div>
+        </div>
+
+        <div class="settings-panel">
+            <h3>🔢 НАСТРОЙКА СЕКЦИЙ <span class="save-badge">💾 автосохранение</span></h3>
+            <div class="sub">Цифры на колесе. Меняй веса — меняется вероятность выпадения</div>
+            <div id="optionsContainer" class="options-list"></div>
+            <button class="add-btn" id="addOptionBtn">➕ Добавить цифру</button>
+            <button class="reset-defaults" id="resetDefaultsBtn">⟳ Сброс (3 секции: веса 30,25,20)</button>
+            <div class="info-bar">
+                <span>🎲 Сумма весов:</span>
+                <span id="totalWeightDisplay">0</span>
+                <span>⚡ Шанс = вес / сумма</span>
+            </div>
+            <div class="warning" id="warningMsg">
+                * Цифры нумеруются автоматически. Изменения сохраняются в браузере.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const STORAGE_KEY = 'wheelNumbersOnly';
+
+        // Стандарт: три секции с цифрами 1,2,3 и весами (шансами)
+        const DEFAULT_SECTIONS = [
+            { weight: 30 },   // цифра 1
+            { weight: 25 },   // цифра 2
+            { weight: 20 }    // цифра 3
+        ];
+
+        // Массив объектов { weight }
+        let sections = [];
+
+        // DOM элементы
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinButton');
+        const resultDiv = document.getElementById('resultMessage');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const totalWeightSpan = document.getElementById('totalWeightDisplay');
+        const warningMsgDiv = document.getElementById('warningMsg');
+        const saveBadge = document.getElementById('saveBadge');
+
+        // Анимация
+        let spinning = false;
+        let animFrame = null;
+        let currentRotation = 0;
+        let startTime = 0;
+        let duration = 1600;
+        let startRotation = 0;
+        let targetRotation = 0;
+        const POINTER_ANGLE = -Math.PI / 2;
+
+        const colorPalette = [
+            '#F94144', '#F9844A', '#F9C74F', '#90BE6D', '#43AA8B', '#4D908E', '#577590', '#9B5DE5',
+            '#F15BB5', '#FEE440', '#00BBF9', '#00F5D4', '#D90368', '#FFB703', '#FB8B67', '#6C9EBF'
+        ];
+
+        // ---------- Сохранение / загрузка ----------
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(sections));
+                saveBadge.style.opacity = '0.7';
+                setTimeout(() => { saveBadge.style.opacity = '1'; }, 200);
+            } catch(e) {}
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        const valid = parsed.every(item => typeof item.weight === 'number' && !isNaN(item.weight));
+                        if (valid) {
+                            sections = parsed;
+                            return;
+                        }
+                    }
+                } catch(e) {}
+            }
+            // иначе стандарт
+            sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+        }
+
+        // Получить массив секций с актуальными весами (>0 для отображения, но отображаем все)
+        function getValidSections() {
+            return sections.filter(s => s.weight > 0);
+        }
+
+        function getTotalWeight() {
+            return sections.reduce((sum, s) => sum + (s.weight > 0 ? s.weight : 0), 0);
+        }
+
+        // Обновить отображение списка (цифры от 1 до N)
+        function renderOptionsList() {
+            optionsContainer.innerHTML = '';
+            sections.forEach((sec, idx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+                
+                const numberDiv = document.createElement('div');
+                numberDiv.className = 'option-number';
+                numberDiv.textContent = (idx + 1).toString();
+                
+                const weightDiv = document.createElement('div');
+                weightDiv.className = 'option-weight';
+                const weightInput = document.createElement('input');
+                weightInput.type = 'number';
+                weightInput.value = sec.weight;
+                weightInput.step = '1';
+                weightInput.min = '0';
+                weightInput.addEventListener('change', (e) => {
+                    let newWeight = parseFloat(e.target.value);
+                    if (isNaN(newWeight)) newWeight = 0;
+                    if (newWeight < 0) newWeight = 0;
+                    sec.weight = newWeight;
+                    persistAndFullRefresh();
+                });
+                weightDiv.appendChild(weightInput);
+                
+                const delBtn = document.createElement('button');
+                delBtn.textContent = '✖';
+                delBtn.className = 'delete-btn';
+                delBtn.addEventListener('click', () => {
+                    if (sections.length <= 1) {
+                        warningMsgDiv.innerHTML = "⚠️ Нельзя удалить последнюю секцию! Добавьте новую цифру.";
+                        setTimeout(() => {
+                            if(getValidSections().length === 0) warningMsgDiv.innerText = "Добавьте хотя бы одну секцию с весом >0";
+                            else warningMsgDiv.innerText = "✅ Цифры + веса сохраняются автоматически.";
+                        }, 1800);
+                        return;
+                    }
+                    sections.splice(idx, 1);
+                    persistAndFullRefresh();
+                });
+                
+                row.appendChild(numberDiv);
+                row.appendChild(weightDiv);
+                row.appendChild(delBtn);
+                optionsContainer.appendChild(row);
+            });
+            updateTotalAndWarning();
+        }
+
+        function updateTotalAndWarning() {
+            const total = getTotalWeight();
+            totalWeightSpan.innerText = total.toFixed(2);
+            const validCount = getValidSections().length;
+            if (validCount === 0 || total <= 0) {
+                spinBtn.disabled = true;
+                if (validCount === 0) warningMsgDiv.innerHTML = "❌ Нет секций с весом >0! Установите положительные веса.";
+                else if (total <= 0) warningMsgDiv.innerHTML = "⚠️ Сумма весов должна быть больше нуля.";
+            } else {
+                spinBtn.disabled = false;
+                warningMsgDiv.innerHTML = "✅ Цифры 1,2,3... Шанс = вес / сумма весов. Любое изменение сохраняется.";
+            }
+        }
+
+        // Отрисовка колеса с номерами (цифры)
+        function redrawWheel() {
+            const valid = getValidSections();
+            if (valid.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = "bold 20px 'Segoe UI'";
+                ctx.fillStyle = "#ffdd99";
+                ctx.fillText("➕ Добавьте вес", canvas.width/2-90, canvas.height/2);
+                return;
+            }
+            const totalWeight = getTotalWeight();
+            if (totalWeight <= 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#cb9e57";
+                ctx.fillText("Нет весов", canvas.width/2-60, canvas.height/2);
+                return;
+            }
+            
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w/2;
+            const cy = h/2;
+            const radius = w * 0.44;
+            
+            ctx.clearRect(0, 0, w, h);
+            let accumAngle = 0;
+            
+            // Для каждого сектора (с учётом фильтра valid, но индексы нужны для цвета)
+            for (let i = 0; i < valid.length; i++) {
+                const sec = valid[i];
+                const angleSpan = (sec.weight / totalWeight) * Math.PI * 2;
+                const start = accumAngle;
+                const end = accumAngle + angleSpan;
+                const rotStart = start + currentRotation;
+                const rotEnd = end + currentRotation;
+                const color = colorPalette[i % colorPalette.length];
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, rotStart, rotEnd);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.strokeStyle = '#2c1a0b';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                
+                // Текст — номер секции (оригинальный индекс в массиве sections? Но valid может пропускать нулевые веса?
+                // Нужно найти реальный номер цифры. Для этого находим индекс этой секции в оригинальном массиве sections.
+                const originalIndex = sections.findIndex(s => s === sec);
+                const numberLabel = (originalIndex + 1).toString();
+                
+                const midAngle = start + angleSpan / 2 + currentRotation;
+                const textRadius = radius * 0.72;
+                const x = cx + Math.cos(midAngle) * textRadius;
+                const y = cy + Math.sin(midAngle) * textRadius;
+                
+                ctx.font = `bold ${Math.max(18, Math.min(34, radius * 0.16))}px "Segoe UI", "Poppins"`;
+                ctx.shadowBlur = 0;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#fff5e6';
+                ctx.shadowBlur = 2;
+                ctx.shadowColor = 'black';
+                ctx.fillText(numberLabel, x, y);
+                ctx.fillStyle = '#2c1e10';
+                ctx.shadowBlur = 0;
+                ctx.fillText(numberLabel, x, y);
+                
+                accumAngle += angleSpan;
+            }
+            
+            // центральный диск
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 0.13, 0, Math.PI*2);
+            ctx.fillStyle = "#f7cf7c";
+            ctx.shadowBlur = 5;
+            ctx.fill();
+            ctx.fillStyle = "#bf8f3a";
+            ctx.font = "bold 30px sans-serif";
+            ctx.fillText("🎲", cx, cy);
+        }
+        
+        // Определить выпавшую секцию по текущему повороту (возвращает объект с весом и номером)
+        function getCurrentWin() {
+            const valid = getValidSections();
+            if (valid.length === 0) return null;
+            const totalWeight = getTotalWeight();
+            if (totalWeight <= 0) return null;
+            
+            let pointerDir = POINTER_ANGLE;
+            pointerDir = ((pointerDir % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+            let accumStart = 0;
+            for (let i = 0; i < valid.length; i++) {
+                const sec = valid[i];
+                const angleSize = (sec.weight / totalWeight) * 2 * Math.PI;
+                const segStartRaw = accumStart;
+                const segEndRaw = accumStart + angleSize;
+                let rotStart = (segStartRaw + currentRotation) % (2*Math.PI);
+                let rotEnd = (segEndRaw + currentRotation) % (2*Math.PI);
+                if (rotStart < 0) rotStart += 2*Math.PI;
+                if (rotEnd < 0) rotEnd += 2*Math.PI;
+                let contains = false;
+                if (rotStart < rotEnd) {
+                    if (pointerDir >= rotStart && pointerDir < rotEnd) contains = true;
+                } else {
+                    if (pointerDir >= rotStart || pointerDir < rotEnd) contains = true;
+                }
+                if (contains) {
+                    const originalIdx = sections.findIndex(s => s === sec);
+                    return { number: originalIdx + 1, weight: sec.weight };
+                }
+                accumStart += angleSize;
+            }
+            // fallback
+            const firstValidIdx = sections.findIndex(s => s === valid[0]);
+            return { number: firstValidIdx + 1, weight: valid[0].weight };
+        }
+        
+        function updateResultText() {
+            const win = getCurrentWin();
+            if (win) {
+                const total = getTotalWeight();
+                const prob = ((win.weight / total) * 100).toFixed(1);
+                resultDiv.innerHTML = `🎉 ВЫПАЛА ЦИФРА ${win.number} 🎉<br><span style="font-size:1rem;">(вероятность ${prob}%)</span>`;
+            } else {
+                resultDiv.innerHTML = `🌀 Добавьте веса и крутите! 🌀`;
+            }
+        }
+        
+        // --- анимация ---
+        function animateSpin(now) {
+            const elapsed = now - startTime;
+            let t = Math.min(1, elapsed / duration);
+            const easeOut = 1 - Math.pow(1 - t, 3);
+            const newRotation = startRotation + (targetRotation - startRotation) * easeOut;
+            currentRotation = newRotation % (2 * Math.PI);
+            redrawWheel();
+            if (t < 1) {
+                animFrame = requestAnimationFrame(animateSpin);
+            } else {
+                currentRotation = targetRotation % (2 * Math.PI);
+                redrawWheel();
+                spinning = false;
+                spinBtn.disabled = false;
+                updateResultText();
+                resultDiv.style.transform = "scale(1.02)";
+                setTimeout(() => { resultDiv.style.transform = ""; }, 200);
+            }
+        }
+        
+        function startSpin() {
+            if (spinning) return;
+            const valid = getValidSections();
+            if (valid.length === 0 || getTotalWeight() <= 0) {
+                resultDiv.innerHTML = "❌ Нет активных секций или сумма весов = 0! Задайте веса >0.";
+                return;
+            }
+            spinning = true;
+            spinBtn.disabled = true;
+            startRotation = currentRotation;
+            const fullTurns = 6 + Math.floor(Math.random() * 9);
+            const randomDelta = Math.random() * 2 * Math.PI;
+            const deltaAngle = fullTurns * 2 * Math.PI + randomDelta;
+            targetRotation = startRotation + deltaAngle;
+            startTime = performance.now();
+            if (animFrame) cancelAnimationFrame(animFrame);
+            animFrame = requestAnimationFrame(animateSpin);
+        }
+        
+        // Полное обновление интерфейса, колеса и сохранение
+        function persistAndFullRefresh() {
+            saveToLocalStorage();
+            renderOptionsList();    // перерисовывает список с номерами
+            redrawWheel();
+            updateResultText();
+            updateTotalAndWarning();
+        }
+        
+        // Сброс к трём секциям с весами 30, 25, 20
+        function resetToDefaults() {
+            sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+            persistAndFullRefresh();
+            warningMsgDiv.innerHTML = "✅ Сброшено: 3 секции (цифры 1,2,3) с весами 30, 25, 20. Данные сохранены.";
+            setTimeout(() => {
+                if(getValidSections().length) warningMsgDiv.innerHTML = "✅ Цифры + веса сохраняются автоматически.";
+            }, 2500);
+        }
+        
+        function addNewSection() {
+            sections.push({ weight: 10 });
+            persistAndFullRefresh();
+        }
+        
+        // Инициализация и адаптация canvas
+        function init() {
+            loadFromLocalStorage();
+            // дополнительная проверка: если ни одной секции (маловероятно) — дефолт
+            if (!sections.length) sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+            saveToLocalStorage(); // просинхронизируем
+            
+            renderOptionsList();
+            redrawWheel();
+            updateResultText();
+            updateTotalAndWarning();
+            
+            spinBtn.addEventListener('click', startSpin);
+            document.getElementById('addOptionBtn').addEventListener('click', addNewSection);
+            document.getElementById('resetDefaultsBtn').addEventListener('click', resetToDefaults);
+            
+            function resizeCanvas() {
+                const size = Math.min(canvas.parentElement.clientWidth, 600);
+                canvas.width = size;
+                canvas.height = size;
+                redrawWheel();
+            }
+            window.addEventListener('resize', () => resizeCanvas());
+            resizeCanvas();
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
+```
