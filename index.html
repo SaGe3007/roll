@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
-        * { box-sizing: border-box; user-select: none; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
         body {
             background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
             font-family: 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
@@ -15,8 +19,9 @@
             margin: 0;
             padding: 20px;
         }
+
         .wheel-container {
-            max-width: 1400px;
+            max-width: 800px;
             width: 100%;
             background: rgba(30, 20, 15, 0.7);
             backdrop-filter: blur(6px);
@@ -24,36 +29,25 @@
             padding: 25px;
             box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 215, 120, 0.4);
+            text-align: center;
         }
-        .dashboard {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            justify-content: center;
-            align-items: flex-start;
-        }
-        .wheel-area {
-            flex: 2;
-            min-width: 320px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+
         .canvas-wrapper {
             position: relative;
             width: 100%;
             max-width: 550px;
             margin: 0 auto;
         }
+
         canvas {
             width: 100%;
             aspect-ratio: 1 / 1;
             background: #2c1e12;
             border-radius: 50%;
             box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5), 0 0 0 12px #f7d44a, 0 0 0 18px #b87c2e;
-            transition: box-shadow 0.2s;
             cursor: pointer;
         }
+
         .pointer {
             position: absolute;
             top: -28px;
@@ -76,6 +70,7 @@
             color: #d48d00;
             text-shadow: 0 0 3px gold;
         }
+
         .spin-btn {
             margin-top: 35px;
             background: radial-gradient(circle at 30% 10%, #ffd966, #e6a017);
@@ -101,8 +96,8 @@
             opacity: 0.6;
             transform: translateY(0);
             cursor: not-allowed;
-            filter: grayscale(0.1);
         }
+
         .result-area {
             margin-top: 20px;
             background: #1f2a1bdb;
@@ -116,445 +111,156 @@
             width: 100%;
             border: 1px solid #ffcd7e;
         }
-        .settings-panel {
-            flex: 1.4;
-            min-width: 280px;
-            background: #261f16dd;
-            backdrop-filter: blur(8px);
-            border-radius: 48px;
-            padding: 18px 18px 25px;
-            box-shadow: inset 0 0 6px #ffd58c33, 0 10px 25px rgba(0,0,0,0.3);
-            border: 1px solid #c9a458;
-        }
-        .settings-panel h3 {
-            margin: 0 0 10px 0;
-            color: #ffdd99;
-            text-align: center;
-            font-size: 1.8rem;
-            font-weight: 600;
-            text-shadow: 2px 2px 0 #674f1a;
-        }
-        .sub {
-            color: #ffcd94;
-            text-align: center;
-            font-size: 0.9rem;
-            margin-bottom: 18px;
-            border-bottom: 1px dashed #cb9e57;
-            display: inline-block;
-            width: 100%;
-        }
-        .options-list {
-            max-height: 420px;
-            overflow-y: auto;
-            padding-right: 6px;
-            margin-bottom: 20px;
-        }
-        .option-row {
-            background: #362c1eba;
-            margin-bottom: 12px;
-            border-radius: 48px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            backdrop-filter: blur(2px);
-            border: 1px solid #efbc6e;
-        }
-        .option-number {
-            background: #f3bc5c;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 60px;
-            font-weight: bold;
-            font-size: 1.6rem;
-            color: #2c1e10;
-            box-shadow: inset 0 -2px 0 #a05e15, 0 2px 6px black;
-        }
-        .option-weight {
-            flex: 2;
-            min-width: 110px;
-        }
-        .option-weight input {
-            width: 100%;
-            background: #fff1d0;
-            border: none;
-            padding: 10px 12px;
-            border-radius: 40px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.1rem;
-            font-family: inherit;
-        }
-        .delete-btn {
-            background: #aa3e2c;
-            border: none;
-            color: white;
-            font-weight: bold;
-            border-radius: 40px;
-            width: 44px;
-            height: 44px;
-            font-size: 22px;
-            cursor: pointer;
-            transition: 0.1s;
-            box-shadow: 0 2px 5px black;
-        }
-        .delete-btn:active {
-            transform: scale(0.94);
-        }
-        .add-btn {
-            background: #5f8b4c;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 60px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: white;
-            width: 100%;
-            margin-top: 8px;
-            cursor: pointer;
-            transition: 0.1s;
-            font-family: inherit;
-        }
-        .add-btn:active {
-            transform: scale(0.97);
-        }
-        .info-bar {
-            display: flex;
-            justify-content: space-between;
-            background: #1f1b12;
-            border-radius: 40px;
-            padding: 10px 15px;
-            margin-top: 18px;
-            font-weight: bold;
-            color: #ffeaac;
-            font-size: 0.9rem;
-        }
-        .warning {
-            color: #ffb347;
+
+        .info {
+            margin-top: 15px;
             font-size: 0.8rem;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .reset-defaults {
-            background: #937341;
-            margin-top: 12px;
-            width: 100%;
-            border-radius: 40px;
-            padding: 10px;
-            color: white;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-        }
-        .save-badge {
-            background: #2f6b2f;
-            font-size: 0.7rem;
-            display: inline-block;
-            border-radius: 20px;
-            padding: 2px 12px;
-            margin-left: 8px;
-            vertical-align: middle;
-        }
-        input:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px gold;
-        }
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #3f301f;
-            border-radius: 8px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #f3bc5c;
-            border-radius: 8px;
-        }
-        @media (max-width: 780px) {
-            .dashboard { flex-direction: column; }
+            color: #ffdd99;
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
 <div class="wheel-container">
-    <div class="dashboard">
-        <div class="wheel-area">
-            <div class="canvas-wrapper">
-                <canvas id="wheelCanvas" width="600" height="600"></canvas>
-                <div class="pointer"></div>
-            </div>
-            <button class="spin-btn" id="spinButton">🎡 КРУТИТЬ 🎲</button>
-            <div class="result-area" id="resultMessage">
-                ✨ Настрой шансы для цифр ✨
-            </div>
-        </div>
-
-        <div class="settings-panel">
-            <h3>🔢 НАСТРОЙКА СЕКЦИЙ <span class="save-badge">💾 автосохранение</span></h3>
-            <div class="sub">Цифры 1..36. Веса встроены (как в wheel_settings.json)</div>
-            <div id="optionsContainer" class="options-list"></div>
-            <button class="add-btn" id="addOptionBtn">➕ Добавить цифру</button>
-            <button class="reset-defaults" id="resetDefaultsBtn">⟳ Сброс к весам из JSON</button>
-            <div class="info-bar">
-                <span>🎲 Сумма весов:</span>
-                <span id="totalWeightDisplay">0</span>
-                <span>⚡ Шанс = вес / сумма</span>
-            </div>
-            <div class="warning" id="warningMsg">
-                ✅ Ваши веса (36 цифр) встроены в код. Изменения сохраняются в браузере.
-            </div>
-        </div>
+    <div class="canvas-wrapper">
+        <canvas id="wheelCanvas" width="600" height="600"></canvas>
+        <div class="pointer"></div>
+    </div>
+    <button class="spin-btn" id="spinButton">🎡 КРУТИТЬ 🎲</button>
+    <div class="result-area" id="resultMessage">
+        ✨ Нажми «Крутить» ✨
+    </div>
+    <div class="info">
+        🎲 36 цифр с фиксированными весами (из вашего JSON)
     </div>
 </div>
 
 <script>
     (function() {
-        const STORAGE_KEY = 'wheelNumbersOnly';
-        
-        // ========== ВАШИ ВЕСА ИЗ wheel_settings.json (36 элементов) ==========
-        const DEFAULT_SECTIONS = [
-            { weight: 50 },   // цифра 1
-            { weight: 200 },  // 2
-            { weight: 1000 }, // 3
-            { weight: 400 },  // 4
-            { weight: 60 },   // 5
-            { weight: 1000 }, // 6
-            { weight: 480 },  // 7
-            { weight: 500 },  // 8
-            { weight: 180 },  // 9
-            { weight: 400 },  // 10
-            { weight: 320 },  // 11
-            { weight: 1 },    // 12
-            { weight: 650 },  // 13
-            { weight: 420 },  // 14
-            { weight: 170 },  // 15
-            { weight: 20 },   // 16
-            { weight: 300 },  // 17
-            { weight: 50 },   // 18
-            { weight: 700 },  // 19
-            { weight: 89 },   // 20
-            { weight: 310 },  // 21
-            { weight: 600 },  // 22
-            { weight: 100 },  // 23
-            { weight: 100 },  // 24
-            { weight: 60 },   // 25
-            { weight: 300 },  // 26
-            { weight: 40 },   // 27
-            { weight: 70 },   // 28
-            { weight: 1 },    // 29
-            { weight: 49 },   // 30
-            { weight: 550 },  // 31
-            { weight: 200 },  // 32
-            { weight: 80 },   // 33
-            { weight: 300 },  // 34
-            { weight: 20 },   // 35
-            { weight: 300 }   // 36
+        // ==================== ВАШИ ВЕСА (36 цифр) ====================
+        const WEIGHTS = [
+            50,    // 1
+            200,   // 2
+            1000,  // 3
+            400,   // 4
+            60,    // 5
+            1000,  // 6
+            480,   // 7
+            500,   // 8
+            180,   // 9
+            400,   // 10
+            320,   // 11
+            1,     // 12
+            650,   // 13
+            420,   // 14
+            170,   // 15
+            20,    // 16
+            300,   // 17
+            50,    // 18
+            700,   // 19
+            89,    // 20
+            310,   // 21
+            600,   // 22
+            100,   // 23
+            100,   // 24
+            60,    // 25
+            300,   // 26
+            40,    // 27
+            70,    // 28
+            1,     // 29
+            49,    // 30
+            550,   // 31
+            200,   // 32
+            80,    // 33
+            300,   // 34
+            20,    // 35
+            300    // 36
         ];
-        // ==========================================================
+        // =============================================================
 
-        let sections = [];
+        const SECTORS_COUNT = WEIGHTS.length;
+        // Вычисляем общую сумму весов
+        const TOTAL_WEIGHT = WEIGHTS.reduce((a, b) => a + b, 0);
+        // Для каждого сектора храним угол в радианах (долю от 2π)
+        const ANGLES = [];
+        let accum = 0;
+        for (let i = 0; i < SECTORS_COUNT; i++) {
+            const angle = (WEIGHTS[i] / TOTAL_WEIGHT) * 2 * Math.PI;
+            ANGLES.push({ start: accum, end: accum + angle });
+            accum += angle;
+        }
+
+        // Цветовая палитра (повторяется если не хватит)
+        const colorPalette = [
+            '#F94144', '#F9844A', '#F9C74F', '#90BE6D', '#43AA8B', '#4D908E', '#577590', '#9B5DE5',
+            '#F15BB5', '#FEE440', '#00BBF9', '#00F5D4', '#D90368', '#FFB703', '#FB8B67', '#6C9EBF',
+            '#F94144', '#F9844A', '#F9C74F', '#90BE6D', '#43AA8B', '#4D908E', '#577590', '#9B5DE5',
+            '#F15BB5', '#FEE440', '#00BBF9', '#00F5D4', '#D90368', '#FFB703', '#FB8B67', '#6C9EBF'
+        ];
 
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
         const spinBtn = document.getElementById('spinButton');
         const resultDiv = document.getElementById('resultMessage');
-        const optionsContainer = document.getElementById('optionsContainer');
-        const totalWeightSpan = document.getElementById('totalWeightDisplay');
-        const warningMsgDiv = document.getElementById('warningMsg');
 
         let spinning = false;
         let animFrame = null;
-        let currentRotation = 0;
+        let currentRotation = 0;        // текущий поворот колеса в радианах
         let startTime = 0;
-        let duration = 1600;
+        const duration = 1600;           // мс
         let startRotation = 0;
         let targetRotation = 0;
-        const POINTER_ANGLE = -Math.PI / 2;
 
-        const colorPalette = [
-            '#F94144', '#F9844A', '#F9C74F', '#90BE6D', '#43AA8B', '#4D908E', '#577590', '#9B5DE5',
-            '#F15BB5', '#FEE440', '#00BBF9', '#00F5D4', '#D90368', '#FFB703', '#FB8B67', '#6C9EBF'
-        ];
+        const POINTER_ANGLE = -Math.PI / 2;   // направление указателя (вверх)
 
-        function saveToLocalStorage() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(sections));
-            } catch(e) {}
-        }
-
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(item => typeof item.weight === 'number' && !isNaN(item.weight))) {
-                        sections = parsed;
-                        return true;
-                    }
-                } catch(e) {}
-            }
-            return false;
-        }
-
-        function initData() {
-            // Сначала пробуем загрузить сохранённые в браузере веса (если пользователь менял)
-            const localLoaded = loadFromLocalStorage();
-            if (!localLoaded) {
-                // Иначе используем встроенные веса (из JSON)
-                sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
-                saveToLocalStorage(); // сохраняем как baseline для этого устройства
-            }
-            // Фильтр на случай нулевых/отрицательных весов (хотя у вас все >0)
-            sections = sections.filter(s => s.weight > 0);
-            if (sections.length === 0) sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
-        }
-
-        function getValidSections() {
-            return sections.filter(s => s.weight > 0);
-        }
-
-        function getTotalWeight() {
-            return sections.reduce((sum, s) => sum + (s.weight > 0 ? s.weight : 0), 0);
-        }
-
-        function renderOptionsList() {
-            optionsContainer.innerHTML = '';
-            sections.forEach((sec, idx) => {
-                const row = document.createElement('div');
-                row.className = 'option-row';
-                
-                const numberDiv = document.createElement('div');
-                numberDiv.className = 'option-number';
-                numberDiv.textContent = (idx + 1).toString();
-                
-                const weightDiv = document.createElement('div');
-                weightDiv.className = 'option-weight';
-                const weightInput = document.createElement('input');
-                weightInput.type = 'number';
-                weightInput.value = sec.weight;
-                weightInput.step = '1';
-                weightInput.min = '0';
-                weightInput.addEventListener('change', (e) => {
-                    let newWeight = parseFloat(e.target.value);
-                    if (isNaN(newWeight)) newWeight = 0;
-                    if (newWeight < 0) newWeight = 0;
-                    sec.weight = newWeight;
-                    persistAndFullRefresh();
-                });
-                weightDiv.appendChild(weightInput);
-                
-                const delBtn = document.createElement('button');
-                delBtn.textContent = '✖';
-                delBtn.className = 'delete-btn';
-                delBtn.addEventListener('click', () => {
-                    if (sections.length <= 1) {
-                        warningMsgDiv.innerHTML = "⚠️ Нельзя удалить последнюю секцию! Добавьте новую цифру.";
-                        setTimeout(() => {
-                            if(getValidSections().length === 0) warningMsgDiv.innerText = "Добавьте хотя бы одну секцию с весом >0";
-                            else warningMsgDiv.innerText = "✅ Цифры + веса сохраняются автоматически.";
-                        }, 1800);
-                        return;
-                    }
-                    sections.splice(idx, 1);
-                    persistAndFullRefresh();
-                });
-                
-                row.appendChild(numberDiv);
-                row.appendChild(weightDiv);
-                row.appendChild(delBtn);
-                optionsContainer.appendChild(row);
-            });
-            updateTotalAndWarning();
-        }
-
-        function updateTotalAndWarning() {
-            const total = getTotalWeight();
-            totalWeightSpan.innerText = total.toFixed(2);
-            const validCount = getValidSections().length;
-            if (validCount === 0 || total <= 0) {
-                spinBtn.disabled = true;
-                if (validCount === 0) warningMsgDiv.innerHTML = "❌ Нет секций с весом >0! Установите положительные веса.";
-                else if (total <= 0) warningMsgDiv.innerHTML = "⚠️ Сумма весов должна быть больше нуля.";
-            } else {
-                spinBtn.disabled = false;
-            }
-        }
-
-        function redrawWheel() {
-            const valid = getValidSections();
-            if (valid.length === 0) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.font = "bold 20px 'Segoe UI'";
-                ctx.fillStyle = "#ffdd99";
-                ctx.fillText("➕ Добавьте вес", canvas.width/2-90, canvas.height/2);
-                return;
-            }
-            const totalWeight = getTotalWeight();
-            if (totalWeight <= 0) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#cb9e57";
-                ctx.fillText("Нет весов", canvas.width/2-60, canvas.height/2);
-                return;
-            }
-            
+        // Функция отрисовки колеса с текущим поворотом
+        function drawWheel() {
             const w = canvas.width;
             const h = canvas.height;
-            const cx = w/2;
-            const cy = h/2;
+            const cx = w / 2;
+            const cy = h / 2;
             const radius = w * 0.44;
-            
+
             ctx.clearRect(0, 0, w, h);
-            let accumAngle = 0;
-            
-            for (let i = 0; i < valid.length; i++) {
-                const sec = valid[i];
-                const angleSpan = (sec.weight / totalWeight) * Math.PI * 2;
-                const start = accumAngle;
-                const end = accumAngle + angleSpan;
-                const rotStart = start + currentRotation;
-                const rotEnd = end + currentRotation;
-                const color = colorPalette[i % colorPalette.length];
-                
+
+            for (let i = 0; i < SECTORS_COUNT; i++) {
+                const startRaw = ANGLES[i].start;
+                const endRaw = ANGLES[i].end;
+                const start = startRaw + currentRotation;
+                const end = endRaw + currentRotation;
+
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
-                ctx.arc(cx, cy, radius, rotStart, rotEnd);
+                ctx.arc(cx, cy, radius, start, end);
                 ctx.closePath();
-                ctx.fillStyle = color;
+                ctx.fillStyle = colorPalette[i % colorPalette.length];
                 ctx.fill();
                 ctx.strokeStyle = '#2c1a0b';
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
-                
-                const originalIndex = sections.findIndex(s => s === sec);
-                const numberLabel = (originalIndex + 1).toString();
-                
-                const midAngle = start + angleSpan / 2 + currentRotation;
+
+                // Номер цифры (i+1)
+                const number = (i + 1).toString();
+                const midAngle = (startRaw + (endRaw - startRaw) / 2) + currentRotation;
                 const textRadius = radius * 0.72;
                 const x = cx + Math.cos(midAngle) * textRadius;
                 const y = cy + Math.sin(midAngle) * textRadius;
-                
+
                 ctx.font = `bold ${Math.max(18, Math.min(34, radius * 0.16))}px "Segoe UI", "Poppins"`;
-                ctx.shadowBlur = 0;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#fff5e6';
                 ctx.shadowBlur = 2;
                 ctx.shadowColor = 'black';
-                ctx.fillText(numberLabel, x, y);
+                ctx.fillStyle = '#fff5e6';
+                ctx.fillText(number, x, y);
                 ctx.fillStyle = '#2c1e10';
                 ctx.shadowBlur = 0;
-                ctx.fillText(numberLabel, x, y);
-                
-                accumAngle += angleSpan;
+                ctx.fillText(number, x, y);
             }
-            
+
+            // Центральная круглая вставка
             ctx.beginPath();
-            ctx.arc(cx, cy, radius * 0.13, 0, Math.PI*2);
+            ctx.arc(cx, cy, radius * 0.13, 0, Math.PI * 2);
             ctx.fillStyle = "#f7cf7c";
             ctx.shadowBlur = 5;
             ctx.fill();
@@ -562,83 +268,71 @@
             ctx.font = "bold 30px sans-serif";
             ctx.fillText("🎲", cx, cy);
         }
-        
-        function getCurrentWin() {
-            const valid = getValidSections();
-            if (valid.length === 0) return null;
-            const totalWeight = getTotalWeight();
-            if (totalWeight <= 0) return null;
-            
+
+        // Определить, какая цифра выпала при текущем повороте
+        function getCurrentNumber() {
+            // Направление указателя в глобальной системе координат
             let pointerDir = POINTER_ANGLE;
-            pointerDir = ((pointerDir % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
-            let accumStart = 0;
-            for (let i = 0; i < valid.length; i++) {
-                const sec = valid[i];
-                const angleSize = (sec.weight / totalWeight) * 2 * Math.PI;
-                const segStartRaw = accumStart;
-                const segEndRaw = accumStart + angleSize;
-                let rotStart = (segStartRaw + currentRotation) % (2*Math.PI);
-                let rotEnd = (segEndRaw + currentRotation) % (2*Math.PI);
-                if (rotStart < 0) rotStart += 2*Math.PI;
-                if (rotEnd < 0) rotEnd += 2*Math.PI;
+            pointerDir = ((pointerDir % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+
+            // Проходим по секторам с учётом поворота
+            for (let i = 0; i < SECTORS_COUNT; i++) {
+                let start = ANGLES[i].start + currentRotation;
+                let end = ANGLES[i].end + currentRotation;
+                start = ((start % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                end = ((end % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+
                 let contains = false;
-                if (rotStart < rotEnd) {
-                    if (pointerDir >= rotStart && pointerDir < rotEnd) contains = true;
+                if (start < end) {
+                    if (pointerDir >= start && pointerDir < end) contains = true;
                 } else {
-                    if (pointerDir >= rotStart || pointerDir < rotEnd) contains = true;
+                    if (pointerDir >= start || pointerDir < end) contains = true;
                 }
-                if (contains) {
-                    const originalIdx = sections.findIndex(s => s === sec);
-                    return { number: originalIdx + 1, weight: sec.weight };
-                }
-                accumStart += angleSize;
+                if (contains) return i + 1;  // номер цифры
             }
-            const firstValidIdx = sections.findIndex(s => s === valid[0]);
-            return { number: firstValidIdx + 1, weight: valid[0].weight };
+            // fallback (не должно случиться)
+            return 1;
         }
-        
+
         function updateResultText() {
-            const win = getCurrentWin();
-            if (win) {
-                const total = getTotalWeight();
-                const prob = ((win.weight / total) * 100).toFixed(1);
-                resultDiv.innerHTML = `🎉 ВЫПАЛА ЦИФРА ${win.number} 🎉<br><span style="font-size:1rem;">(вероятность ${prob}%)</span>`;
-            } else {
-                resultDiv.innerHTML = `🌀 Добавьте веса и крутите! 🌀`;
-            }
+            const number = getCurrentNumber();
+            const weight = WEIGHTS[number - 1];
+            const prob = ((weight / TOTAL_WEIGHT) * 100).toFixed(2);
+            resultDiv.innerHTML = `🎉 ВЫПАЛА ЦИФРА ${number} 🎉<br><span style="font-size:1rem;">(вероятность ${prob}%)</span>`;
         }
-        
+
+        // Анимация вращения
         function animateSpin(now) {
             const elapsed = now - startTime;
             let t = Math.min(1, elapsed / duration);
+            // кубический ease-out
             const easeOut = 1 - Math.pow(1 - t, 3);
             const newRotation = startRotation + (targetRotation - startRotation) * easeOut;
             currentRotation = newRotation % (2 * Math.PI);
-            redrawWheel();
+            drawWheel();
+
             if (t < 1) {
                 animFrame = requestAnimationFrame(animateSpin);
             } else {
                 currentRotation = targetRotation % (2 * Math.PI);
-                redrawWheel();
+                drawWheel();
                 spinning = false;
                 spinBtn.disabled = false;
                 updateResultText();
+                // небольшой эффект "всплытия"
                 resultDiv.style.transform = "scale(1.02)";
                 setTimeout(() => { resultDiv.style.transform = ""; }, 200);
             }
         }
-        
+
         function startSpin() {
             if (spinning) return;
-            const valid = getValidSections();
-            if (valid.length === 0 || getTotalWeight() <= 0) {
-                resultDiv.innerHTML = "❌ Нет активных секций или сумма весов = 0! Задайте веса >0.";
-                return;
-            }
             spinning = true;
             spinBtn.disabled = true;
             startRotation = currentRotation;
-            const fullTurns = 6 + Math.floor(Math.random() * 9);
+            // случайное количество полных оборотов от 6 до 15
+            const fullTurns = 6 + Math.floor(Math.random() * 10);
+            // случайный дополнительный угол для непредсказуемости
             const randomDelta = Math.random() * 2 * Math.PI;
             const deltaAngle = fullTurns * 2 * Math.PI + randomDelta;
             targetRotation = startRotation + deltaAngle;
@@ -646,52 +340,23 @@
             if (animFrame) cancelAnimationFrame(animFrame);
             animFrame = requestAnimationFrame(animateSpin);
         }
-        
-        function persistAndFullRefresh() {
-            saveToLocalStorage();
-            renderOptionsList();
-            redrawWheel();
-            updateResultText();
-            updateTotalAndWarning();
-        }
-        
-        function resetToDefaults() {
-            sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
-            persistAndFullRefresh();
-            warningMsgDiv.innerHTML = "✅ Сброшено к весам из wheel_settings.json (36 цифр). Данные сохранены.";
-            setTimeout(() => {
-                if(getValidSections().length) warningMsgDiv.innerHTML = "✅ Цифры + веса сохраняются автоматически.";
-            }, 2500);
-        }
-        
-        function addNewSection() {
-            sections.push({ weight: 10 });
-            persistAndFullRefresh();
-        }
-        
+
+        // Адаптация размера canvas под контейнер
         function resizeCanvas() {
-            const size = Math.min(canvas.parentElement.clientWidth, 600);
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth, 600);
             canvas.width = size;
             canvas.height = size;
-            redrawWheel();
+            drawWheel();
         }
-        
-        function init() {
-            initData();          // загружает данные: либо localStorage, либо DEFAULT_SECTIONS (ваши веса)
-            renderOptionsList();
-            redrawWheel();
-            updateResultText();
-            updateTotalAndWarning();
-            
-            spinBtn.addEventListener('click', startSpin);
-            document.getElementById('addOptionBtn').addEventListener('click', addNewSection);
-            document.getElementById('resetDefaultsBtn').addEventListener('click', resetToDefaults);
-            
-            window.addEventListener('resize', () => resizeCanvas());
-            resizeCanvas();
-        }
-        
-        init();
+
+        window.addEventListener('resize', () => resizeCanvas());
+        resizeCanvas();
+
+        spinBtn.addEventListener('click', startSpin);
+
+        // Начальное отображение результата
+        updateResultText();
     })();
 </script>
 </body>
