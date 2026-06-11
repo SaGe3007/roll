@@ -290,23 +290,23 @@
             </div>
             <button class="spin-btn" id="spinButton">🎡 КРУТИТЬ 🎲</button>
             <div class="result-area" id="resultMessage">
-                ✨ Загрузка настроек... ✨
+                ✨ Настрой шансы для цифр ✨
             </div>
         </div>
 
         <div class="settings-panel">
             <h3>🔢 НАСТРОЙКА СЕКЦИЙ <span class="save-badge">💾 автосохранение</span></h3>
-            <div class="sub">Цифры на колесе. Меняй веса — меняется вероятность выпадения</div>
+            <div class="sub">Цифры 1..36. Веса встроены (как в wheel_settings.json)</div>
             <div id="optionsContainer" class="options-list"></div>
             <button class="add-btn" id="addOptionBtn">➕ Добавить цифру</button>
-            <button class="reset-defaults" id="resetDefaultsBtn">⟳ Сброс (3 секции: веса 30,25,20)</button>
+            <button class="reset-defaults" id="resetDefaultsBtn">⟳ Сброс к весам из JSON</button>
             <div class="info-bar">
                 <span>🎲 Сумма весов:</span>
                 <span id="totalWeightDisplay">0</span>
                 <span>⚡ Шанс = вес / сумма</span>
             </div>
             <div class="warning" id="warningMsg">
-                * Загружены веса из wheel_settings.json (если доступен).
+                ✅ Ваши веса (36 цифр) встроены в код. Изменения сохраняются в браузере.
             </div>
         </div>
     </div>
@@ -315,11 +315,47 @@
 <script>
     (function() {
         const STORAGE_KEY = 'wheelNumbersOnly';
+        
+        // ========== ВАШИ ВЕСА ИЗ wheel_settings.json (36 элементов) ==========
         const DEFAULT_SECTIONS = [
-            { weight: 30 },
-            { weight: 25 },
-            { weight: 20 }
+            { weight: 50 },   // цифра 1
+            { weight: 200 },  // 2
+            { weight: 1000 }, // 3
+            { weight: 400 },  // 4
+            { weight: 60 },   // 5
+            { weight: 1000 }, // 6
+            { weight: 480 },  // 7
+            { weight: 500 },  // 8
+            { weight: 180 },  // 9
+            { weight: 400 },  // 10
+            { weight: 320 },  // 11
+            { weight: 1 },    // 12
+            { weight: 650 },  // 13
+            { weight: 420 },  // 14
+            { weight: 170 },  // 15
+            { weight: 20 },   // 16
+            { weight: 300 },  // 17
+            { weight: 50 },   // 18
+            { weight: 700 },  // 19
+            { weight: 89 },   // 20
+            { weight: 310 },  // 21
+            { weight: 600 },  // 22
+            { weight: 100 },  // 23
+            { weight: 100 },  // 24
+            { weight: 60 },   // 25
+            { weight: 300 },  // 26
+            { weight: 40 },   // 27
+            { weight: 70 },   // 28
+            { weight: 1 },    // 29
+            { weight: 49 },   // 30
+            { weight: 550 },  // 31
+            { weight: 200 },  // 32
+            { weight: 80 },   // 33
+            { weight: 300 },  // 34
+            { weight: 20 },   // 35
+            { weight: 300 }   // 36
         ];
+        // ==========================================================
 
         let sections = [];
 
@@ -345,14 +381,12 @@
             '#F15BB5', '#FEE440', '#00BBF9', '#00F5D4', '#D90368', '#FFB703', '#FB8B67', '#6C9EBF'
         ];
 
-        // Сохранение в localStorage
         function saveToLocalStorage() {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(sections));
             } catch(e) {}
         }
 
-        // Загрузка из localStorage (без проверки JSON)
         function loadFromLocalStorage() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
@@ -367,48 +401,19 @@
             return false;
         }
 
-        // Загрузка из внешнего JSON-файла (wheel_settings.json)
-        async function loadFromJsonFile() {
-            try {
-                const response = await fetch('wheel_settings.json');
-                if (!response.ok) throw new Error('JSON not found');
-                const data = await response.json();
-                if (Array.isArray(data) && data.length > 0 && data.every(item => typeof item.weight === 'number' && !isNaN(item.weight))) {
-                    sections = data;
-                    // Сохраняем в localStorage как кэш для этого устройства
-                    saveToLocalStorage();
-                    warningMsgDiv.innerHTML = "✅ Загружены веса из wheel_settings.json. Изменения автосохраняются в браузере.";
-                    return true;
-                } else {
-                    throw new Error('Invalid JSON structure');
-                }
-            } catch (error) {
-                console.warn('Не удалось загрузить wheel_settings.json:', error);
-                return false;
+        function initData() {
+            // Сначала пробуем загрузить сохранённые в браузере веса (если пользователь менял)
+            const localLoaded = loadFromLocalStorage();
+            if (!localLoaded) {
+                // Иначе используем встроенные веса (из JSON)
+                sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+                saveToLocalStorage(); // сохраняем как baseline для этого устройства
             }
-        }
-
-        // Основная инициализация: сначала пытаемся взять JSON, потом localStorage, потом дефолт
-        async function initData() {
-            // Пытаемся загрузить из JSON
-            const jsonLoaded = await loadFromJsonFile();
-            if (!jsonLoaded) {
-                // Если JSON нет, пробуем localStorage
-                const localLoaded = loadFromLocalStorage();
-                if (!localLoaded) {
-                    // Иначе дефолт
-                    sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
-                    warningMsgDiv.innerHTML = "⚠️ wheel_settings.json не найден, используются стандартные веса (или из localStorage).";
-                } else {
-                    warningMsgDiv.innerHTML = "📁 Загружены веса из localStorage (кэш). Чтобы получить общие веса, убедитесь, что wheel_settings.json доступен.";
-                }
-            }
-            // Гарантия, что нет секций с отрицательными весами
+            // Фильтр на случай нулевых/отрицательных весов (хотя у вас все >0)
             sections = sections.filter(s => s.weight > 0);
             if (sections.length === 0) sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
         }
 
-        // Получить массив только с положительными весами (для отрисовки)
         function getValidSections() {
             return sections.filter(s => s.weight > 0);
         }
@@ -653,7 +658,7 @@
         function resetToDefaults() {
             sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
             persistAndFullRefresh();
-            warningMsgDiv.innerHTML = "✅ Сброшено: 3 секции (цифры 1,2,3) с весами 30, 25, 20. Данные сохранены.";
+            warningMsgDiv.innerHTML = "✅ Сброшено к весам из wheel_settings.json (36 цифр). Данные сохранены.";
             setTimeout(() => {
                 if(getValidSections().length) warningMsgDiv.innerHTML = "✅ Цифры + веса сохраняются автоматически.";
             }, 2500);
@@ -671,8 +676,8 @@
             redrawWheel();
         }
         
-        async function init() {
-            await initData();          // Загружаем данные из JSON / localStorage / default
+        function init() {
+            initData();          // загружает данные: либо localStorage, либо DEFAULT_SECTIONS (ваши веса)
             renderOptionsList();
             redrawWheel();
             updateResultText();
